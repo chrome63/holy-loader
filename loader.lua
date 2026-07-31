@@ -28,7 +28,7 @@ local KEY_FILE =
     "HOLY_Key.txt"
 
 local PUBLIC_LOADER_URL =
-    "https://raw.githubusercontent.com/chrome63/holy/main/holy_public_loader_gag2.lua"
+    "https://raw.githubusercontent.com/chrome63/holy-loader/main/loader.lua"
 
 local ALLOWED_UNIVERSE_IDS = {
     [10200395747] =

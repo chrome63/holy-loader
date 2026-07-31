@@ -12,7 +12,7 @@ local API = "https://holy-loader-api.benjicapalot041.workers.dev"
 local PRODUCT = "holy_core"
 local SOURCE_ROUTE = "/v1/source/holy_dev"
 local KEY_FILE = "HOLY_Dev_Key.txt"
-local DEV_LOADER_URL = "https://raw.githubusercontent.com/chrome63/holy/main/holy_dev_loader_gag2.lua"
+local DEV_LOADER_URL = "https://raw.githubusercontent.com/chrome63/holy-loader/main/dev.lua"
 
 local function Clean(value)
     return tostring(value or ""):gsub("^%s+", ""):gsub("%s+$", "")

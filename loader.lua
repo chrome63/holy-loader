@@ -82,18 +82,101 @@ end
 local Environment =
     GetEnvironment()
 
-if Environment.HOLY_PUBLIC_LOADER_RUNNING == true then
+local HOLY_LOADER_CHANNEL =
+    "stable"
+
+local existingLoaderRuntime =
+    Environment.HOLY_LOADER_RUNTIME
+    or _G.HOLY_LOADER_RUNTIME
+
+if type(existingLoaderRuntime) == "table"
+and existingLoaderRuntime.JobId == game.JobId
+and (
+    existingLoaderRuntime.Loading == true
+    or existingLoaderRuntime.Loaded == true
+) then
 
     warn(
         "[HOLY]",
-        "Public loader is already running."
+        "HOLY is already loading or loaded.",
+        "Channel:",
+        tostring(
+            existingLoaderRuntime.Channel
+            or "unknown"
+        )
     )
 
     return
 end
 
+local HOLY_LOADER_RUNTIME = {
+    JobId =
+        game.JobId,
+
+    PlaceId =
+        game.PlaceId,
+
+    Channel =
+        HOLY_LOADER_CHANNEL,
+
+    Loading =
+        true,
+
+    Loaded =
+        false,
+
+    StartedAt =
+        os.clock(),
+}
+
+Environment.HOLY_LOADER_RUNTIME =
+    HOLY_LOADER_RUNTIME
+
+_G.HOLY_LOADER_RUNTIME =
+    HOLY_LOADER_RUNTIME
+
 Environment.HOLY_PUBLIC_LOADER_RUNNING =
     true
+
+Environment.HOLY_DEV_LOADER_RUNNING =
+    false
+
+_G.HOLY_PUBLIC_LOADER_RUNNING =
+    true
+
+_G.HOLY_DEV_LOADER_RUNNING =
+    false
+
+local function ReleaseHolyLoaderRuntime()
+
+    if Environment.HOLY_LOADER_RUNTIME
+        == HOLY_LOADER_RUNTIME then
+
+        Environment.HOLY_LOADER_RUNTIME =
+            nil
+    end
+
+    if _G.HOLY_LOADER_RUNTIME
+        == HOLY_LOADER_RUNTIME then
+
+        _G.HOLY_LOADER_RUNTIME =
+            nil
+    end
+
+    Environment.HOLY_PUBLIC_LOADER_RUNNING =
+        false
+
+    Environment.HOLY_DEV_LOADER_RUNNING =
+        false
+
+    _G.HOLY_PUBLIC_LOADER_RUNNING =
+        false
+
+    _G.HOLY_DEV_LOADER_RUNNING =
+        false
+
+    return true
+end
 
 local function WaitForSupportedExperience(
     timeout
@@ -168,8 +251,7 @@ local supportedExperience,
 
 if supportedExperience ~= true then
 
-    Environment.HOLY_PUBLIC_LOADER_RUNNING =
-        false
+    ReleaseHolyLoaderRuntime()
 
     error(
         "[HOLY] This loader cannot run in this experience."
@@ -1038,6 +1120,17 @@ end
 
 local function QueueAfterTeleport()
 
+    local queueState =
+        Environment.HOLY_LOADER_QUEUE_STATE
+        or _G.HOLY_LOADER_QUEUE_STATE
+
+    if type(queueState) == "table"
+    and queueState.FromJobId == game.JobId then
+
+        return true,
+            nil
+    end
+
     local queueFunction =
         GetQueueFunction()
 
@@ -1069,6 +1162,26 @@ local function QueueAfterTeleport()
             queueFunction,
             queuedCode
         )
+
+    if ok == true then
+
+        local newQueueState = {
+            FromJobId =
+                game.JobId,
+
+            Channel =
+                HOLY_LOADER_CHANNEL,
+
+            QueuedAt =
+                os.clock(),
+        }
+
+        Environment.HOLY_LOADER_QUEUE_STATE =
+            newQueueState
+
+        _G.HOLY_LOADER_QUEUE_STATE =
+            newQueueState
+    end
 
     return ok == true,
         ok == true
@@ -1239,6 +1352,40 @@ local function RunWithKey(key)
 
     if runOk ~= true then
 
+        local failedMainRuntime =
+            Environment.HOLY_MAIN_RUNTIME
+            or _G.HOLY_MAIN_RUNTIME
+
+        if type(failedMainRuntime) == "table"
+        and failedMainRuntime.JobId == game.JobId
+        and failedMainRuntime.Loaded ~= true then
+
+            if Environment.HOLY_MAIN_RUNTIME
+                == failedMainRuntime then
+
+                Environment.HOLY_MAIN_RUNTIME =
+                    nil
+            end
+
+            if _G.HOLY_MAIN_RUNTIME
+                == failedMainRuntime then
+
+                _G.HOLY_MAIN_RUNTIME =
+                    nil
+            end
+        end
+
+        HOLY_LOADER_RUNTIME.Loading =
+            false
+
+        HOLY_LOADER_RUNTIME.Loaded =
+            false
+
+        HOLY_LOADER_RUNTIME.LastError =
+            tostring(
+                runError
+            )
+
         return false,
             "Run failed: "
             .. tostring(
@@ -1246,7 +1393,19 @@ local function RunWithKey(key)
             )
     end
 
+    HOLY_LOADER_RUNTIME.Loading =
+        false
+
+    HOLY_LOADER_RUNTIME.Loaded =
+        true
+
+    HOLY_LOADER_RUNTIME.FinishedAt =
+        os.clock()
+
     Environment.HOLY_PUBLIC_LOADER_LOADED =
+        true
+
+    _G.HOLY_PUBLIC_LOADER_LOADED =
         true
 
     return true,
@@ -1912,7 +2071,12 @@ local function CreateKeyWindow(
 
     close.MouseButton1Click:Connect(function()
 
-        Environment.HOLY_PUBLIC_LOADER_RUNNING =
+        ReleaseHolyLoaderRuntime()
+
+        Environment.HOLY_PUBLIC_LOADER_LOADED =
+            false
+
+        _G.HOLY_PUBLIC_LOADER_LOADED =
             false
 
         gui:Destroy()

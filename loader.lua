@@ -912,31 +912,7 @@ local function DownloadStableSource(session)
     end
 
     local expectedMarker =
-        "-- HOLY LICENSE MARKER: "
-        .. licenseId
-        .. ":"
-        .. tostring(
-            LocalPlayer.UserId
-        )
-
-    warn(
-        "[HOLY] Expected marker:",
-        expectedMarker
-    )
-
-    warn(
-        "[HOLY] Received prefix:",
-        string.format(
-            "%q",
-            source:sub(
-                1,
-                math.min(
-                    180,
-                    #source
-                )
-            )
-        )
-    )
+        "-- HOLY LICENSE MARKER: PRIVATE-SOURCE"
 
     if source:sub(
         1,
@@ -944,7 +920,7 @@ local function DownloadStableSource(session)
     ) ~= expectedMarker then
 
         return nil,
-            "The private source license marker did not match this session."
+            "The private source marker was missing or invalid."
     end
 
     if preview:find(
@@ -955,6 +931,19 @@ local function DownloadStableSource(session)
 
         return nil,
             "The API returned the wrong source channel."
+    end
+
+    local endMarker =
+        "-- HOLY_PREMIUM_END_MARKER"
+
+    if source:find(
+        endMarker,
+        1,
+        true
+    ) == nil then
+
+        return nil,
+            "The private source download was incomplete. Run the loader again."
     end
 
     return source,

@@ -1,6 +1,4 @@
 
-warn("[HOLY] Expected marker:", expectedSourceMarker)
-warn("[HOLY] Received prefix:", string.format("%q", source:sub(1, 150)))
 --==================================================
 -- HOLY PUBLIC LOADER - V2 PRIVATE SOURCE
 --==================================================
@@ -920,6 +918,25 @@ local function DownloadStableSource(session)
         .. tostring(
             LocalPlayer.UserId
         )
+
+    warn(
+        "[HOLY] Expected marker:",
+        expectedMarker
+    )
+
+    warn(
+        "[HOLY] Received prefix:",
+        string.format(
+            "%q",
+            source:sub(
+                1,
+                math.min(
+                    180,
+                    #source
+                )
+            )
+        )
+    )
 
     if source:sub(
         1,

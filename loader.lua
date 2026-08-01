@@ -1,3 +1,6 @@
+
+warn("[HOLY] Expected marker:", expectedSourceMarker)
+warn("[HOLY] Received prefix:", string.format("%q", source:sub(1, 150)))
 --==================================================
 -- HOLY PUBLIC LOADER - V2 PRIVATE SOURCE
 --==================================================

@@ -28,6 +28,9 @@ local SOURCE_ROUTE =
 local KEY_FILE =
     "HOLY_Dev_Key.txt"
 
+local DISCORD_INVITE =
+    "https://discord.gg/zUj5NmTA4u"
+
 local DEV_LOADER_URL =
     "https://raw.githubusercontent.com/chrome63/holy-loader/main/dev.lua"
 
@@ -82,6 +85,93 @@ end
 
 local Environment =
     GetEnvironment()
+
+local function CopyToClipboard(
+    value
+)
+
+    value =
+        tostring(
+            value
+            or ""
+        )
+
+    local attempted = {}
+
+    local function TryCopy(
+        callback
+    )
+
+        if type(callback) ~= "function"
+        or attempted[callback] == true then
+
+            return false
+        end
+
+        attempted[callback] =
+            true
+
+        local success,
+            result =
+            pcall(
+                callback,
+                value
+            )
+
+        return success == true
+            and result ~= false
+    end
+
+    if TryCopy(
+        setclipboard
+    ) == true
+    or TryCopy(
+        toclipboard
+    ) == true
+    or TryCopy(
+        rawget(
+            Environment,
+            "setclipboard"
+        )
+    ) == true
+    or TryCopy(
+        rawget(
+            Environment,
+            "toclipboard"
+        )
+    ) == true
+    or TryCopy(
+        rawget(
+            Environment,
+            "set_clipboard"
+        )
+    ) == true
+    or TryCopy(
+        rawget(
+            Environment,
+            "writeclipboard"
+        )
+    ) == true then
+
+        return true
+    end
+
+    local synTable =
+        rawget(
+            Environment,
+            "syn"
+        )
+
+    if type(synTable) == "table"
+    and TryCopy(
+        synTable.write_clipboard
+    ) == true then
+
+        return true
+    end
+
+    return false
+end
 
 local HOLY_LOADER_CHANNEL =
     "dev"
@@ -1915,7 +2005,7 @@ local function CreateKeyWindow(
     status.Size =
         UDim2.new(
             1,
-            -48,
+            -168,
             0,
             24
         )
@@ -1949,6 +2039,141 @@ local function CreateKeyWindow(
 
     status.Parent =
         window
+
+    local discordButton =
+        Instance.new(
+            "TextButton"
+        )
+
+    discordButton.AnchorPoint =
+        Vector2.new(
+            1,
+            0
+        )
+
+    discordButton.Position =
+        UDim2.new(
+            1,
+            -24,
+            0,
+            211
+        )
+
+    discordButton.Size =
+        UDim2.fromOffset(
+            110,
+            24
+        )
+
+    discordButton.AutoButtonColor =
+        false
+
+    discordButton.BackgroundColor3 =
+        Color3.fromRGB(
+            24,
+            26,
+            33
+        )
+
+    discordButton.BorderSizePixel =
+        0
+
+    discordButton.Font =
+        Enum.Font.GothamBold
+
+    discordButton.Text =
+        "JOIN DISCORD"
+
+    discordButton.TextColor3 =
+        Color3.fromRGB(
+            155,
+            159,
+            175
+        )
+
+    discordButton.TextSize =
+        10
+
+    discordButton.Parent =
+        window
+
+    AddCorner(
+        discordButton,
+        6
+    )
+
+    discordButton.MouseEnter:Connect(function()
+
+        if discordButton.Text
+            == "JOIN DISCORD" then
+
+            discordButton.TextColor3 =
+                Color3.fromRGB(
+                    88,
+                    101,
+                    242
+                )
+        end
+    end)
+
+    discordButton.MouseLeave:Connect(function()
+
+        if discordButton.Text
+            == "JOIN DISCORD" then
+
+            discordButton.TextColor3 =
+                Color3.fromRGB(
+                    155,
+                    159,
+                    175
+                )
+        end
+    end)
+
+    discordButton.MouseButton1Click:Connect(function()
+
+        local copied =
+            CopyToClipboard(
+                DISCORD_INVITE
+            )
+
+        discordButton.Text =
+            copied == true
+            and "COPIED!"
+            or "COPY FAILED"
+
+        discordButton.TextColor3 =
+            copied == true
+            and Color3.fromRGB(
+                88,
+                101,
+                242
+            )
+            or Color3.fromRGB(
+                244,
+                102,
+                115
+            )
+
+        task.delay(
+            1.5,
+            function()
+
+                if discordButton.Parent then
+
+                    discordButton.Text =
+                        "JOIN DISCORD"
+
+                    discordButton.TextColor3 =
+                        Color3.fromRGB(
+                            155,
+                            159,
+                            175
+                        )
+                end
+            end
+        )
+    end)
 
     local busy =
         false

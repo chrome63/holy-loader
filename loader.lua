@@ -1,6 +1,6 @@
 
 --==================================================
--- HOLY PUBLIC LOADER - V2 PRIVATE SOURCE
+-- HOLY DEV LOADER - V2 PRIVATE SOURCE
 --==================================================
 
 local Players =
@@ -23,13 +23,13 @@ local PRODUCT =
     "holy_core"
 
 local SOURCE_ROUTE =
-    "/v1/source/holy_core"
+    "/v1/source/holy_dev"
 
 local KEY_FILE =
-    "HOLY_Key.txt"
+    "HOLY_Dev_Key.txt"
 
-local PUBLIC_LOADER_URL =
-    "https://raw.githubusercontent.com/chrome63/holy-loader/main/loader.lua"
+local DEV_LOADER_URL =
+    "https://raw.githubusercontent.com/chrome63/holy-loader/main/dev.lua"
 
 local ALLOWED_UNIVERSE_IDS = {
     [10200395747] =
@@ -84,7 +84,7 @@ local Environment =
     GetEnvironment()
 
 local HOLY_LOADER_CHANNEL =
-    "stable"
+    "dev"
 
 local existingLoaderRuntime =
     Environment.HOLY_LOADER_RUNTIME
@@ -137,16 +137,16 @@ _G.HOLY_LOADER_RUNTIME =
     HOLY_LOADER_RUNTIME
 
 Environment.HOLY_PUBLIC_LOADER_RUNNING =
-    true
+    false
 
 Environment.HOLY_DEV_LOADER_RUNNING =
-    false
-
-_G.HOLY_PUBLIC_LOADER_RUNNING =
     true
 
-_G.HOLY_DEV_LOADER_RUNNING =
+_G.HOLY_PUBLIC_LOADER_RUNNING =
     false
+
+_G.HOLY_DEV_LOADER_RUNNING =
+    true
 
 local function ReleaseHolyLoaderRuntime()
 
@@ -614,7 +614,7 @@ local function ActivateKey(key)
     if cleanKey == "" then
 
         return nil,
-            "Enter your HOLY Premium key."
+            "Enter an Owner or Staff key."
     end
 
     local requestBody =
@@ -726,12 +726,11 @@ local function ActivateKey(key)
             or "premium"
         ):lower()
 
-    if role ~= "premium"
-    and role ~= "staff"
+    if role ~= "staff"
     and role ~= "owner" then
 
         return nil,
-            "The license returned an unsupported role."
+            "This key does not have Staff or Owner access."
     end
 
     local token =
@@ -776,7 +775,7 @@ local function ActivateKey(key)
         nil
 end
 
-local function DownloadStableSource(session)
+local function DownloadDevSource(session)
 
     if type(session) ~= "table" then
 
@@ -856,7 +855,7 @@ local function DownloadStableSource(session)
     if source == "" then
 
         return nil,
-            "The stable source response was empty."
+            "The development source response was empty."
     end
 
     local preview =
@@ -923,8 +922,12 @@ local function DownloadStableSource(session)
             "The private source marker was missing or invalid."
     end
 
+    local expectedChannelMarker =
+        "-- holy source channel: "
+        .. HOLY_LOADER_CHANNEL
+
     if preview:find(
-        "-- holy source channel: stable",
+        expectedChannelMarker,
         1,
         true
     ) == nil then
@@ -991,10 +994,10 @@ local function InstallAuth(session)
             true,
 
         Dev =
-            false,
+            true,
 
         Public =
-            true,
+            false,
 
         Product =
             activation.product
@@ -1073,7 +1076,7 @@ local function InstallAuth(session)
             or 0,
 
         SourceChannel =
-            "stable",
+            "dev",
 
         Features =
             features,
@@ -1086,19 +1089,19 @@ local function InstallAuth(session)
         auth
 
     Environment.HOLY_DEV_MODE =
-        false
-
-    Environment.HOLY_PUBLIC_MODE =
         true
 
-    Environment.HOLY_DEV_PRODUCT =
-        nil
+    Environment.HOLY_PUBLIC_MODE =
+        false
 
-    Environment.HOLY_PUBLIC_PRODUCT =
+    Environment.HOLY_DEV_PRODUCT =
         PRODUCT
 
+    Environment.HOLY_PUBLIC_PRODUCT =
+        nil
+
     Environment.HOLY_SOURCE_CHANNEL =
-        "stable"
+        "dev"
 
     Environment.HOLY_LICENSE_ROLE =
         session.Role
@@ -1107,19 +1110,19 @@ local function InstallAuth(session)
         auth
 
     _G.HOLY_DEV_MODE =
-        false
-
-    _G.HOLY_PUBLIC_MODE =
         true
 
-    _G.HOLY_DEV_PRODUCT =
-        nil
+    _G.HOLY_PUBLIC_MODE =
+        false
 
-    _G.HOLY_PUBLIC_PRODUCT =
+    _G.HOLY_DEV_PRODUCT =
         PRODUCT
 
+    _G.HOLY_PUBLIC_PRODUCT =
+        nil
+
     _G.HOLY_SOURCE_CHANNEL =
-        "stable"
+        "dev"
 
     _G.HOLY_LICENSE_ROLE =
         session.Role
@@ -1150,7 +1153,7 @@ local function QueueAfterTeleport()
     end
 
     local reloadUrl =
-        PUBLIC_LOADER_URL
+        DEV_LOADER_URL
         .. "?t="
         .. tostring(
             os.time()
@@ -1265,7 +1268,7 @@ local function RunWithKey(key)
 
     local source,
         sourceError =
-        DownloadStableSource(
+        DownloadDevSource(
             session
         )
 
@@ -1323,7 +1326,7 @@ local function RunWithKey(key)
     end
 
     print(
-        "[HOLY] Authenticated.",
+        "[HOLY DEV] Authenticated.",
         "Role:",
         tostring(
             auth.Role
@@ -1332,7 +1335,7 @@ local function RunWithKey(key)
         tostring(
             LocalPlayer.Name
         ),
-        "Source: stable"
+        "Source: dev"
     )
 
     local chunk,
@@ -1411,10 +1414,10 @@ local function RunWithKey(key)
     HOLY_LOADER_RUNTIME.FinishedAt =
         os.clock()
 
-    Environment.HOLY_PUBLIC_LOADER_LOADED =
+    Environment.HOLY_DEV_LOADER_LOADED =
         true
 
-    _G.HOLY_PUBLIC_LOADER_LOADED =
+    _G.HOLY_DEV_LOADER_LOADED =
         true
 
     return true,
@@ -1478,7 +1481,7 @@ local function CreateKeyWindow(
 
     local oldGui =
         parent:FindFirstChild(
-            "HOLY_Public_Key_UI"
+            "HOLY_Dev_Key_UI"
         )
 
     if oldGui then
@@ -1492,7 +1495,7 @@ local function CreateKeyWindow(
         )
 
     gui.Name =
-        "HOLY_Public_Key_UI"
+        "HOLY_Dev_Key_UI"
 
     gui.IgnoreGuiInset =
         true
@@ -1630,7 +1633,7 @@ local function CreateKeyWindow(
         Enum.Font.GothamBold
 
     title.Text =
-        "HOLY PREMIUM ACCESS"
+        "HOLY DEV ACCESS"
 
     title.TextColor3 =
         Color3.fromRGB(
@@ -1733,7 +1736,7 @@ local function CreateKeyWindow(
         Enum.Font.Gotham
 
     subtitle.Text =
-        "Enter your HOLY Premium key. Valid keys are saved automatically."
+        "Enter an Owner or Staff key. Valid keys are saved automatically."
 
     subtitle.TextColor3 =
         Color3.fromRGB(
@@ -1878,7 +1881,7 @@ local function CreateKeyWindow(
         Enum.Font.GothamBold
 
     activate.Text =
-        "ACTIVATE HOLY KEY"
+        "ACTIVATE DEV KEY"
 
     activate.TextColor3 =
         Color3.fromRGB(
@@ -1990,7 +1993,7 @@ local function CreateKeyWindow(
         if key == "" then
 
             SetStatus(
-                "Enter your HOLY Premium key.",
+                "Enter an Owner or Staff key.",
                 true
             )
 
@@ -2016,7 +2019,7 @@ local function CreateKeyWindow(
             "AUTHENTICATING..."
 
         SetStatus(
-            "Checking license and private stable access...",
+            "Checking license and private dev access...",
             false
         )
 
@@ -2031,7 +2034,7 @@ local function CreateKeyWindow(
             if success == true then
 
                 SetStatus(
-                    "Authenticated. Loading HOLY Premium...",
+                    "Authenticated. Loading HOLY Dev...",
                     false
                 )
 
@@ -2060,7 +2063,7 @@ local function CreateKeyWindow(
                 true
 
             activate.Text =
-                "ACTIVATE HOLY KEY"
+                "ACTIVATE DEV KEY"
 
             SetStatus(
                 tostring(
@@ -2082,10 +2085,10 @@ local function CreateKeyWindow(
 
         ReleaseHolyLoaderRuntime()
 
-        Environment.HOLY_PUBLIC_LOADER_LOADED =
+        Environment.HOLY_DEV_LOADER_LOADED =
             false
 
-        _G.HOLY_PUBLIC_LOADER_LOADED =
+        _G.HOLY_DEV_LOADER_LOADED =
             false
 
         gui:Destroy()
@@ -2112,7 +2115,7 @@ local savedKey =
 if savedKey ~= "" then
 
     print(
-        "[HOLY] Saved key found. Authenticating..."
+        "[HOLY DEV] Saved key found. Authenticating..."
     )
 
     local success,
@@ -2127,7 +2130,7 @@ if savedKey ~= "" then
     end
 
     warn(
-        "[HOLY] Saved key failed:",
+        "[HOLY DEV] Saved key failed:",
         tostring(
             runError
         )
@@ -2145,5 +2148,5 @@ end
 
 CreateKeyWindow(
     "",
-    "Paste your HOLY Premium key to continue."
+    "Paste your HOLY Dev key to continue."
 )

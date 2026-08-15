@@ -29,7 +29,7 @@ local KEY_FILE =
     "HOLY_Key.txt"
 
 local DISCORD_INVITE =
-    "https://discord.gg/zUj5NmTA4u"
+    "https://discord.gg/AEMJvX7sXA"
 
 local PUBLIC_LOADER_URL =
     "https://raw.githubusercontent.com/chrome63/holy-loader/main/loader.lua"

@@ -35,15 +35,25 @@ local DEV_LOADER_URL =
     "https://raw.githubusercontent.com/chrome63/holy-loader/main/dev.lua"
 
 local ALLOWED_UNIVERSE_IDS = {
+    -- Grow a Garden 2
     [10200395747] =
+        true,
+
+    -- Steal An Egg
+    [10563114921] =
         true,
 }
 
 local LEGACY_ALLOWED_PLACE_IDS = {
+    -- Grow a Garden 2
     [97598239454123] =
         true,
 
     [73504898027860] =
+        true,
+
+    -- Steal An Egg
+    [107778070777162] =
         true,
 }
 

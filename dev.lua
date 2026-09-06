@@ -45,6 +45,14 @@ local ALLOWED_UNIVERSE_IDS = {
 }
 
 local LEGACY_ALLOWED_PLACE_IDS = {
+    -- Grow a Garden 1: Garden
+    [126884695634066] =
+        true,
+
+    -- Grow a Garden 1: Trade World
+    [129954712878723] =
+        true,
+
     -- Grow a Garden 2
     [97598239454123] =
         true,
@@ -1503,6 +1511,58 @@ local function RunWithKey(key)
             .. tostring(
                 runError
             )
+    end
+
+    local isGag1 =
+        game.PlaceId == 126884695634066
+        or game.PlaceId == 129954712878723
+
+    if isGag1 then
+
+        local gag1Runtime =
+            Environment.HOLY_GAG1_RUNTIME
+            or _G.HOLY_GAG1_RUNTIME
+
+        if type(gag1Runtime) ~= "table"
+        or gag1Runtime.Alive ~= true
+        or gag1Runtime.Window == nil
+        or type(gag1Runtime.Stop) ~= "function" then
+
+            HOLY_LOADER_RUNTIME.Loading = false
+            HOLY_LOADER_RUNTIME.Loaded = false
+
+            ReleaseHolyLoaderRuntime()
+
+            Environment.HOLY_DEV_LOADER_LOADED = false
+            _G.HOLY_DEV_LOADER_LOADED = false
+
+            return false,
+                "GAG 1 did not finish starting. Check that your private dev source contains the new GAG 1 branch."
+        end
+
+        local originalStop =
+            gag1Runtime.Stop
+
+        gag1Runtime.Stop = function(...)
+
+            originalStop(...)
+
+            if gag1Runtime.Alive ~= false then
+                return
+            end
+
+            HOLY_LOADER_RUNTIME.Loading = false
+            HOLY_LOADER_RUNTIME.Loaded = false
+
+            if Environment.HOLY_LOADER_RUNTIME == HOLY_LOADER_RUNTIME
+            and _G.HOLY_LOADER_RUNTIME == HOLY_LOADER_RUNTIME then
+
+                ReleaseHolyLoaderRuntime()
+
+                Environment.HOLY_DEV_LOADER_LOADED = false
+                _G.HOLY_DEV_LOADER_LOADED = false
+            end
+        end
     end
 
     HOLY_LOADER_RUNTIME.Loading =

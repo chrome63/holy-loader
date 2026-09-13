@@ -883,6 +883,55 @@ local function ActivateKey(key)
         nil
 end
 
+local function SendSourceRequest(options)
+
+    local retryableStatus = {
+        [0] = true,
+        [408] = true,
+        [500] = true,
+        [502] = true,
+        [503] = true,
+        [504] = true,
+    }
+
+    for attempt = 1, 3 do
+
+        local response, requestError = SendRequest(options)
+        local retryable = false
+
+        if response == nil then
+
+            local message = tostring(requestError or ""):lower()
+
+            retryable = message:find("serverprotocolerror", 1, true) ~= nil
+                or message:find("timeout", 1, true) ~= nil
+                or message:find("timed out", 1, true) ~= nil
+                or message:find("connection reset", 1, true) ~= nil
+                or message:find("connection closed", 1, true) ~= nil
+                or message:find("connectionerror", 1, true) ~= nil
+
+        elseif response.Success ~= true then
+
+            retryable = retryableStatus[tonumber(response.StatusCode) or 0] == true
+        end
+
+        if retryable ~= true or attempt == 3 then
+
+            return response, requestError
+        end
+
+        warn(
+            "[HOLY DEV] Source download attempt "
+            .. tostring(attempt)
+            .. " failed. Retrying in "
+            .. tostring(attempt)
+            .. "s..."
+        )
+
+        task.wait(attempt)
+    end
+end
+
 local function DownloadDevSource(session)
 
     if type(session) ~= "table" then
@@ -893,7 +942,7 @@ local function DownloadDevSource(session)
 
     local response,
         requestError =
-        SendRequest({
+        SendSourceRequest({
             Url =
                 API
                 .. SOURCE_ROUTE,
@@ -2425,7 +2474,7 @@ if savedKey ~= "" then
     end
 
     warn(
-        "[HOLY DEV] Saved key failed:",
+        "[HOLY DEV] Startup failed:",
         tostring(
             runError
         )

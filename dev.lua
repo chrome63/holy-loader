@@ -35,6 +35,10 @@ local DEV_LOADER_URL =
     "https://raw.githubusercontent.com/chrome63/holy-loader/main/dev.lua"
 
 local ALLOWED_UNIVERSE_IDS = {
+    -- Mog or Die
+    [10571722689] =
+        true,
+
     -- Grow a Garden 2
     [10200395747] =
         true,
@@ -45,6 +49,10 @@ local ALLOWED_UNIVERSE_IDS = {
 }
 
 local LEGACY_ALLOWED_PLACE_IDS = {
+    -- Mog or Die
+    [130641102725850] =
+        true,
+
     -- Grow a Garden 1: Garden
     [126884695634066] =
         true,
@@ -1566,11 +1574,18 @@ local function RunWithKey(key)
         game.PlaceId == 126884695634066
         or game.PlaceId == 129954712878723
 
-    if isGag1 then
+    local isMog =
+        game.PlaceId == 130641102725850
+        or game.GameId == 10571722689
+
+    if isGag1 or isMog then
+
+        local runtimeKey =
+            isMog and "HOLY_MOG_RUNTIME" or "HOLY_GAG1_RUNTIME"
 
         local gag1Runtime =
-            Environment.HOLY_GAG1_RUNTIME
-            or _G.HOLY_GAG1_RUNTIME
+            Environment[runtimeKey]
+            or _G[runtimeKey]
 
         if type(gag1Runtime) ~= "table"
         or gag1Runtime.Alive ~= true
@@ -1586,7 +1601,8 @@ local function RunWithKey(key)
             _G.HOLY_DEV_LOADER_LOADED = false
 
             return false,
-                "GAG 1 did not finish starting. Check that your private dev source contains the new GAG 1 branch."
+                (isMog and "Mog or Die" or "GAG 1")
+                .. " did did not finish starting. Check that the private dev source contains the updated game branch."
         end
 
         local originalStop =
